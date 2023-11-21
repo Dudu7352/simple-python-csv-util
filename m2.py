@@ -45,9 +45,9 @@ class Table:
                 else (self.__ref_map[i].field
                 if i in self.__ref_map.keys()
                 else to_snake(i)) for i in filter(lambda x: x != '', file[0].split(';'))]
-
         head_p = [class_sig.parameters[i].annotation for i in head]
         head_zip = list(zip(head, head_p))
+        
         ref_cols = {i.field: k for k, i in self.__ref_map.items()}
 
         decorated_class.table = {}
