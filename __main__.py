@@ -11,9 +11,11 @@ def to_snake(camel_case: str) -> str:
 class TableRepo:
     __registry: dict[dict] = {}
 
+    @staticmethod
     def register_table(entity):
         TableRepo.__registry[entity] = entity.table
 
+    @staticmethod
     def request_obj(type, id):
         return TableRepo.__registry[type][id]
 
