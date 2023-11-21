@@ -33,7 +33,6 @@ class Table:
         self.__ref_map = ref_map
 
     def __call__(self, decorated_class):
-        decorated_class.primary = self.__primary
         class_sig = signature(decorated_class)
 
         with open(self.__file) as f:
@@ -70,9 +69,6 @@ class Ref:
     def __init__(self, field: str, referenced_table):
         self.field = field
         self.referenced_table = referenced_table
-
-    def __repr__(self) -> str:
-        return f"Ref(field: {self.field}, referenced_table:{self.referenced_table})"
 
 
 @Table("uczniowie.txt", primary="id_ucznia")
