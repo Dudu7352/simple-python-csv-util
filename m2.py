@@ -21,7 +21,6 @@ class TableRepo:
     def register_table(self, entity):
         self.__registry[entity] = entity.table
 
-    # TODO: create connections after all objects have been loaded
     def request_obj(self, type, id):
         return self.__registry[type][id]
 
@@ -120,3 +119,37 @@ class Ocena:
         self.ocena = ocena
         self.data = data
 
+# żeby linter wiedział co się dzieje
+oceny: dict[str, Ocena] = Ocena.table
+uczniowie: dict[str, Uczen] = Uczen.table
+przedmioty: dict[str, Przedmiot] = Przedmiot.table
+
+# zadanie 1
+avg_dict: dict[Uczen] = {}
+for ocena in oceny.values():
+    try:
+        x = avg_dict[ocena.uczen]
+        avg_dict[ocena.uczen] = [x[0] + ocena.ocena, x[1] + 1]
+    except KeyError:
+        avg_dict[ocena.uczen] = [ocena.ocena, 1]
+uczen = max(avg_dict, key = lambda x: avg_dict[x][0] / avg_dict[x][1])
+print("Zadanie 1")
+print(uczen.imie, uczen.nazwisko, end='\n\n')
+
+# zadanie 2
+oceny_z_przedmiotu: dict[Przedmiot, dict[Uczen]] = {}
+for ocena in oceny.values():
+    try:
+        przedm_ocen = oceny_z_przedmiotu[ocena.przedmiot]
+        try:
+            x = przedm_ocen[ocena.uczen]
+            przedm_ocen[ocena.uczen] = [x[0] + ocena.ocena, x[1] + 1]
+        except:
+            przedm_ocen[ocena.uczen] = [ocena.ocena, 1]
+    except:
+        oceny_z_przedmiotu[ocena.przedmiot] = {}
+
+print("Zadanie 2")
+for przedmiot, avg_dict in oceny_z_przedmiotu.items():
+    uczen = max(avg_dict, key = lambda x: avg_dict[x][0] / avg_dict[x][1])
+    print(f"Przedmiot: {przedmiot.nazwa_przedmiotu}\nNauczyciel: {przedmiot.imie_naucz} {przedmiot.nazwisko_naucz}\nUczen: {uczen.imie} {uczen.nazwisko}", end='\n\n')
