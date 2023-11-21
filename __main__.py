@@ -3,26 +3,19 @@ import re
 from uuid import uuid4 as uuid
 
 
-def Singletone(decorated_class):
-    inst = decorated_class()
-    return lambda: inst
-
-
 def to_snake(camel_case: str) -> str:
     def callback(pat): return f'{pat.group(1)[0]}_{pat.group(1)[1]}'
     return re.sub(r'([a-z][A-Z])', callback, camel_case.replace(' ', '_').replace('ID', 'id_')).lower()
 
 
-@Singletone
 class TableRepo:
-    def __init__(self):
-        self.__registry: dict[dict] = {}
+    __registry: dict[dict] = {}
 
-    def register_table(self, entity):
-        self.__registry[entity] = entity.table
+    def register_table(entity):
+        TableRepo.__registry[entity] = entity.table
 
-    def request_obj(self, type, id):
-        return self.__registry[type][id]
+    def request_obj(type, id):
+        return TableRepo.__registry[type][id]
 
 
 class Table:
@@ -51,7 +44,7 @@ class Table:
         decorated_class.table = {}
 
         for row in file[1:]:
-            params = {elem_name: TableRepo().request_obj(class_sig.parameters[elem_name].annotation, csv_p)
+            params = {elem_name: TableRepo.request_obj(class_sig.parameters[elem_name].annotation, csv_p)
                       if elem_name in ref_cols else elem_type(csv_p)
                       for (elem_name, elem_type), csv_p in zip(head_zip, row.strip().split(';'))}
 
@@ -61,7 +54,7 @@ class Table:
                                   if self.__primary in params
                                   else str(uuid())] = obj
 
-        TableRepo().register_table(decorated_class)
+        TableRepo.register_table(decorated_class)
         return decorated_class
 
 
