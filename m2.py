@@ -1,4 +1,4 @@
-from inspect import getargs, isroutine, signature
+from inspect import signature
 import re
 from uuid import uuid4 as uuid
 
@@ -40,34 +40,21 @@ class Table:
         with open(self.__file) as f:
             file = [i.strip() for i in f]
 
-        # print(self.__ref_map.keys())
-        head = []
-        for i in filter(lambda x: x != '', file[0].split(';')):
-            if i in self.__head_map.keys():
-                head.append(self.__head_map[i])
-            elif i in self.__ref_map.keys():
-                head.append(self.__ref_map[i].field)
-            else:
-                head.append(to_snake(i))
-
-        # print(file[0].split(';'), head)
+        head = [self.__head_map[i]
+                if i in self.__head_map.keys()
+                else (self.__ref_map[i].field
+                if i in self.__ref_map.keys()
+                else to_snake(i)) for i in filter(lambda x: x != '', file[0].split(';'))]
 
         head_p = [class_sig.parameters[i].annotation for i in head]
         head_zip = list(zip(head, head_p))
         ref_cols = {i.field: k for k, i in self.__ref_map.items()}
 
-        # print(ref_cols)
-
         decorated_class.table = {}
 
         for row in file[1:]:
-            # print("-" * 20, *list(zip(head_zip, row.strip().split(';'))), sep='\n')
-            params = {elem_name: TableRepo().request_obj(class_sig
-                                                   .parameters[elem_name]
-                                                   .annotation,
-                                                   csv_p)
-                      if elem_name in ref_cols
-                      else elem_type(csv_p)
+            params = {elem_name: TableRepo().request_obj(class_sig.parameters[elem_name].annotation, csv_p)
+                      if elem_name in ref_cols else elem_type(csv_p)
                       for (elem_name, elem_type), csv_p in zip(head_zip, row.strip().split(';'))}
 
             obj = decorated_class(**params)
@@ -77,9 +64,6 @@ class Table:
                                   else str(uuid())] = obj
 
         TableRepo().register_table(decorated_class)
-        print(f"Loaded and registered {decorated_class}")
-        print(self.__primary)
-        print(*decorated_class.table, sep='\n')
         return decorated_class
 
 
@@ -100,8 +84,7 @@ class Uczen:
                  imie: str,
                  ulica: str,
                  dom: int,
-                 id_klasy: str
-                 ):
+                 id_klasy: str):
         self.id_ucznia = id_ucznia
         self.nazwisko = nazwisko
         self.imie = imie
@@ -116,8 +99,7 @@ class Przedmiot:
                  id_przedmiotu: int,
                  nazwa_przedmiotu: str,
                  nazwisko_naucz: str,
-                 imie_naucz: str
-                 ):
+                 imie_naucz: str):
         self.id_przedmiotu = id_przedmiotu
         self.nazwa_przedmiotu = nazwa_przedmiotu
         self.nazwisko_naucz = nazwisko_naucz
@@ -132,9 +114,9 @@ class Ocena:
                  uczen: Uczen,
                  przedmiot: Przedmiot,
                  ocena: int,
-                 data: str
-                 ):
+                 data: str):
         self.uczen = uczen
         self.przedmiot = przedmiot
         self.ocena = ocena
         self.data = data
+
